@@ -3,9 +3,7 @@
 import Image from "next/image";
 import {
   Card,
-  CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -31,28 +29,20 @@ export function FoodCard({
   const addItem = useCartStore((s) => s.addItem);
 
   return (
-    <Card className="overflow-hidden pt-0">
-      <div className="relative aspect-[4/3] w-full bg-muted">
-        <Image
-          src={imageString}
-          alt={name}
-          fill
-          className="object-cover"
-          sizes="(max-width: 768px) 100vw, 33vw"
-        />
+    <Card size="sm" className="gap-0 overflow-hidden py-0">
+      <div className="relative aspect-16/10 bg-muted">
+        <Image src={imageString} alt={name} fill className="object-cover" />
       </div>
-      <CardHeader>
+      <CardHeader className="p-4">
         <CardTitle>{name}</CardTitle>
         <CardDescription className="line-clamp-2">
           {description}
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <p className="text-base font-semibold">{formatINR(price)}</p>
-      </CardContent>
-      <CardFooter className="justify-between gap-2 border-t-0 bg-transparent">
+      <div className="flex items-center justify-between px-4 pb-4">
+        <p className="font-semibold">{formatINR(price)}</p>
         <Button
-          className="w-full"
+          size="sm"
           onClick={() =>
             addItem({
               menuItemId: id,
@@ -64,7 +54,7 @@ export function FoodCard({
         >
           Add
         </Button>
-      </CardFooter>
+      </div>
     </Card>
   );
 }
