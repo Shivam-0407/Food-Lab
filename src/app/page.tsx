@@ -1,17 +1,13 @@
 "use client";
 
+import { CartSheet } from "@/components/cart-sheet";
 import { FoodCard } from "@/components/food-card";
 import { FoodCardSkeleton } from "@/components/food-card-skeleton";
 import { MenuError } from "@/components/menu-error";
-import { Button } from "@/components/ui/button";
-import { useCartStore } from "@/store/cart";
 import { MenuItem } from "@prisma/client";
 import { useEffect, useState } from "react";
 
 export default function Home() {
-  const clearCart = useCartStore((s) => s.clearCart);
-  const itemCount = useCartStore((s) => s.itemCount());
-
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -60,19 +56,7 @@ export default function Home() {
               Delicious food, delivered fast
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-muted-foreground">
-              Cart · {itemCount}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={clearCart}
-              disabled={itemCount === 0}
-            >
-              Clear
-            </Button>
-          </div>
+          <CartSheet />
         </header>
 
         {loading ? (
