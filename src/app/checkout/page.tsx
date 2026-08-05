@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -48,25 +49,19 @@ export default function CheckoutPage() {
     setError(null);
 
     try {
-      const res = await fetch("/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...values,
-          apartment: values.apartment || undefined,
-        }),
+      const { data: order } = await axios.post("/api/orders", {
+        ...values,
+        apartment: values.apartment || undefined,
       });
 
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        throw new Error(data?.error ?? "Failed to place order");
-      }
-
-      const order = await res.json();
       clearCart();
       router.push(`/orders/${order.id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.error ?? "Failed to place order");
+      } else {
+        setError("Something went wrong");
+      }
     }
   }
 
@@ -75,9 +70,9 @@ export default function CheckoutPage() {
       <div className="mx-auto max-w-lg px-6 py-16 text-center">
         <h1 className="text-2xl font-semibold">Checkout</h1>
         <p className="mt-2 text-sm text-muted-foreground">Your cart is empty</p>
-        <Button className="mt-6" render={<Link href="/" />}>
+        <Link href="/" className="mt-6 inline-block text-sm underline">
           Back to menu
-        </Button>
+        </Link>
       </div>
     );
   }

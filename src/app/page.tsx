@@ -5,6 +5,7 @@ import { FoodCard } from "@/components/food-card";
 import { FoodCardSkeleton } from "@/components/food-card-skeleton";
 import { MenuError } from "@/components/menu-error";
 import { MenuItem } from "@prisma/client";
+import axios from "axios";
 import { useEffect, useState } from "react";
 
 export default function Home() {
@@ -15,13 +16,11 @@ export default function Home() {
   useEffect(() => {
     async function loadMenu() {
       try {
-        const res = await fetch("/api/menu");
-        if (!res.ok) throw new Error("Failed to load menu");
-        const data = await res.json();
+        const { data } = await axios.get<MenuItem[]>("/api/menu");
         setMenuItems(data);
         setError(null);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Something went wrong");
+      } catch {
+        setError("Failed to load menu");
       } finally {
         setLoading(false);
       }
@@ -35,12 +34,10 @@ export default function Home() {
     setError(null);
 
     try {
-      const res = await fetch("/api/menu");
-      if (!res.ok) throw new Error("Failed to load menu");
-      const data = await res.json();
+      const { data } = await axios.get<MenuItem[]>("/api/menu");
       setMenuItems(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+    } catch {
+      setError("Failed to load menu");
     } finally {
       setLoading(false);
     }
