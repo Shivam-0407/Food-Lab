@@ -122,7 +122,7 @@ export default function CheckoutPage() {
               <FormItem>
                 <FormLabel>Phone number</FormLabel>
                 <FormControl>
-                  <Input type="tel" {...field} />
+                  <Input type="tel" {...field} maxLength={10} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

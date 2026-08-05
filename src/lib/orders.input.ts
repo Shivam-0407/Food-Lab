@@ -2,7 +2,9 @@ import { z } from "zod";
 
 export const createOrderSchema = z.object({
   customerName: z.string().min(2, "Name is required"),
-  customerPhone: z.string().min(7, "Phone number is required"),
+  customerPhone: z
+    .string()
+    .regex(/^\d{10}$/, "Enter a valid 10-digit phone number"),
   address: z.string().min(5, "Address is required"),
   apartment: z.string().optional(),
   total: z.number().nonnegative(),
