@@ -1,36 +1,209 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Foodie
 
-## Getting Started
+Order management for a food delivery app — browse the menu, manage a cart, checkout, and track order status.
 
-First, run the development server:
+## Stack
+
+- **Frontend:** Next.js (App Router), React, Tailwind CSS, shadcn/ui, Zustand, React Hook Form + Zod
+- **Backend:** Next.js Route Handlers (REST API)
+- **Database:** MongoDB Atlas + Prisma (v6)
+- **Package manager:** Bun
+- **Tests:** Vitest + React Testing Library
+
+## Features
+
+1. **Menu** — list food items with image, description, and price (INR)
+2. **Cart** — add items, change quantity, remove items (Zustand)
+3. **Checkout** — delivery details form, place order
+4. **Order tracking** — status progress (`RECEIVED` → `PREPARING` → `OUT_FOR_DELIVERY` → `DELIVERED`)
+5. **REST API** — menu + orders CRUD + status updates
+6. **Tests** — API routes, Zod validation, cart store, FoodCard UI
+
+Status updates are done manually via API/Postman, then click **Refresh** on the order page.
+
+## Getting started
+
+### Prerequisites
+
+- [Bun](https://bun.sh) installed
+- A MongoDB Atlas cluster (or local MongoDB)
+
+### 1. Install dependencies
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+bun install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Environment
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Copy the example env and set your connection string. The **database name** after the host is required (e.g. `foodie`):
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+cp .env.example .env
+```
 
-## Learn More
+```env
+DATABASE_URL="mongodb+srv://USER:PASSWORD@cluster0.xxxxx.mongodb.net/foodie?retryWrites=true&w=majority"
+```
 
-To learn more about Next.js, take a look at the following resources:
+### 3. Database setup
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+bun run db:push    # sync Prisma schema to MongoDB
+bun run db:seed    # seed Indian menu items
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Optional: browse data with `bun run db:studio`.
 
-## Deploy on Vercel
+### 4. Run the app
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+bun run dev
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Open [http://localhost:3000](http://localhost:3000).
+
+## Scripts
+
+| Command | Description |
+|---------|-------------|
+| `bun run dev` | Start Next.js (Turbopack) |
+| `bun run build` | Prisma generate + production build |
+| `bun run start` | Start production server |
+| `bun run test` | Run Vitest once |
+| `bun run test:watch` | Vitest watch mode |
+| `bun run db:push` | Push schema to MongoDB |
+| `bun run db:seed` | Seed menu items |
+| `bun run db:studio` | Open Prisma Studio |
+| `bun run lint` | ESLint |
+
+## API
+
+Base URL: `http://localhost:3000`
+
+### Menu
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/menu` | List all menu items |
+
+### Orders
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/orders` | List all orders |
+| `POST` | `/api/orders` | Create order |
+| `GET` | `/api/orders/:id` | Get order by id |
+| `DELETE` | `/api/orders/:id` | Delete order |
+| `PATCH` | `/api/orders/:id/status` | Update order status |
+
+#### Create order body
+
+```json
+{
+  "customerName": "Shiva",
+  "customerPhone": "9876543210",
+  "address": "221B Baker Street",
+  "apartment": "Apt 2",
+  "total": 298,
+  "items": [
+    {
+      "menuItemId": "YOUR_MENU_ITEM_OBJECT_ID",
+      "name": "Paneer Butter Masala",
+      "price": 249,
+      "quantity": 1
+    }
+  ]
+}
+```
+
+- `customerPhone` must be exactly **10 digits**
+- `status` defaults to `RECEIVED` on create
+
+#### Update status body
+
+```json
+{
+  "status": "PREPARING"
+}
+```
+
+Allowed values: `RECEIVED` | `PREPARING` | `OUT_FOR_DELIVERY` | `DELIVERED`
+
+## Postman / curl examples
+
+Replace `ORDER_ID` with an id from `/orders/...` after placing an order.
+
+**Get order**
+
+```bash
+curl http://localhost:3000/api/orders/ORDER_ID
+```
+
+**Update status**
+
+```bash
+curl -X PATCH http://localhost:3000/api/orders/ORDER_ID/status \
+  -H "Content-Type: application/json" \
+  -d '{"status":"PREPARING"}'
+```
+
+```bash
+curl -X PATCH http://localhost:3000/api/orders/ORDER_ID/status \
+  -H "Content-Type: application/json" \
+  -d '{"status":"OUT_FOR_DELIVERY"}'
+```
+
+```bash
+curl -X PATCH http://localhost:3000/api/orders/ORDER_ID/status \
+  -H "Content-Type: application/json" \
+  -d '{"status":"DELIVERED"}'
+```
+
+Then open `/orders/ORDER_ID` and click **Refresh**.
+
+**Delete order**
+
+```bash
+curl -X DELETE http://localhost:3000/api/orders/ORDER_ID
+```
+
+## Testing
+
+```bash
+bun run test
+```
+
+Coverage includes:
+
+- Zod input validation (`createOrderSchema`, status schema)
+- Orders API: create, list, get by id, update status, delete (Prisma mocked)
+- Menu API
+- Cart store (add / qty / remove / subtotal)
+- `FoodCard` add-to-cart UI
+
+## Project structure
+
+```
+src/
+  app/
+    api/menu/              # GET menu
+    api/orders/            # GET/POST orders
+    api/orders/[id]/       # GET/DELETE order
+    api/orders/[id]/status # PATCH status
+    checkout/              # Checkout form
+    orders/[id]/           # Order tracking page
+  components/              # UI (FoodCard, CartSheet, etc.)
+  lib/                     # Prisma, Zod schemas, order helpers
+  store/                   # Zustand cart
+  test/                    # Vitest setup
+prisma/
+  schema.prisma
+  seed.ts
+```
+
+## Notes
+
+- Use **Prisma 6** with MongoDB (Prisma 7 does not support Mongo yet).
+- Keep `.env` out of git — only commit `.env.example`.
+- Images load from Unsplash; `images.unsplash.com` is allowlisted in `next.config.ts`.
