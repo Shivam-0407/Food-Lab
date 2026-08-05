@@ -19,3 +19,16 @@ export const createOrderSchema = z.object({
 });
 
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
+
+export const orderStatusSchema = z.enum([
+  "RECEIVED",
+  "PREPARING",
+  "OUT_FOR_DELIVERY",
+  "DELIVERED",
+]);
+
+export const updateOrderStatusSchema = z.object({
+  status: orderStatusSchema,
+});
+
+export type UpdateOrderStatusInput = z.infer<typeof updateOrderStatusSchema>;
