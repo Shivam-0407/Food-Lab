@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Minus, Plus, Trash2 } from "lucide-react";
+import { Minus, Plus, ShoppingCart, Trash2 } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -26,8 +26,22 @@ export function CartSheet() {
 
   return (
     <Sheet>
-      <SheetTrigger render={<Button variant="outline" size="sm" />}>
-        Cart · {itemCount}
+      <SheetTrigger
+        render={
+          <Button
+            variant="outline"
+            size="icon"
+            className="relative"
+            aria-label={`Cart, ${itemCount} ${itemCount === 1 ? "item" : "items"}`}
+          />
+        }
+      >
+        <ShoppingCart />
+        {itemCount > 0 ? (
+          <span className="absolute -top-1.5 -right-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground tabular-nums">
+            {itemCount > 99 ? "99+" : itemCount}
+          </span>
+        ) : null}
       </SheetTrigger>
 
       <SheetContent side="right" className="flex w-full flex-col sm:max-w-md">

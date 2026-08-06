@@ -45,8 +45,8 @@ export default function Home() {
 
   return (
     <div className="min-h-screen">
-      <div className="mx-auto max-w-6xl px-6 py-6">
-        <header className="mb-8 flex items-center justify-between gap-4">
+      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/80">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4">
           <div>
             <h1 className="text-3xl font-semibold">Foodie</h1>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -54,8 +54,10 @@ export default function Home() {
             </p>
           </div>
           <CartSheet />
-        </header>
+        </div>
+      </header>
 
+      <div className="mx-auto max-w-6xl px-6 py-6">
         {loading ? (
           <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
