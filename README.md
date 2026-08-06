@@ -130,6 +130,26 @@ Allowed values: `RECEIVED` | `PREPARING` | `OUT_FOR_DELIVERY` | `DELIVERED`
 
 ## Postman / curl examples
 
+### Prove secure order create (tamper prices / fake ids)
+
+See **[docs/POSTMAN_SECURITY.md](docs/POSTMAN_SECURITY.md)** for full curl scripts.
+
+Quick versions (replace `REAL_MENU_ITEM_ID` and host):
+
+```bash
+# 1) Fake price/name — ignored; response uses DB price/name
+curl -s -X POST http://localhost:3000/api/orders \
+  -H "Content-Type: application/json" \
+  -d '{"customerName":"Hacker","customerPhone":"9876543210","address":"221B Baker Street","total":1,"items":[{"menuItemId":"REAL_MENU_ITEM_ID","quantity":1,"name":"FAKE","price":1}]}'
+
+# 2) Unknown menu id — expect 400
+curl -s -i -X POST http://localhost:3000/api/orders \
+  -H "Content-Type: application/json" \
+  -d '{"customerName":"Hacker","customerPhone":"9876543210","address":"221B Baker Street","items":[{"menuItemId":"507f1f77bcf86cd799439011","quantity":1}]}'
+```
+
+### Status updates
+
 Replace `ORDER_ID` with an id from `/orders/...` after placing an order.
 
 **Get order**
