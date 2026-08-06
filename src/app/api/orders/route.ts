@@ -14,8 +14,38 @@ export async function POST(request: Request) {
       );
     }
 
-    const { customerName, customerPhone, address, apartment, items, total } =
+    const { customerName, customerPhone, address, apartment, items } =
       parsed.data;
+
+    const menuItemIds = [...new Set(items.map((i) => i.menuItemId))];
+
+    const menuItems = await prisma.menuItem.findMany({
+      where: { id: { in: menuItemIds } },
+    });
+
+    if (menuItems.length !== menuItemIds.length) {
+      return NextResponse.json(
+        { error: "One or more menu items were not found" },
+        { status: 400 },
+      );
+    }
+
+    const menuById = new Map(menuItems.map((m) => [m.id, m]));
+
+    const orderItems = items.map((item) => {
+      const menuItem = menuById.get(item.menuItemId)!;
+      return {
+        menuItemId: menuItem.id,
+        name: menuItem.name,
+        price: menuItem.price,
+        quantity: item.quantity,
+      };
+    });
+
+    const total = orderItems.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0,
+    );
 
     const order = await prisma.order.create({
       data: {
@@ -24,14 +54,7 @@ export async function POST(request: Request) {
         address,
         apartment,
         total,
-        items: {
-          create: items.map((item) => ({
-            menuItemId: item.menuItemId,
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity,
-          })),
-        },
+        items: { create: orderItems },
       },
       include: { items: true },
     });

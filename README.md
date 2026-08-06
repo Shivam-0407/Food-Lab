@@ -105,12 +105,9 @@ Base URL: `http://localhost:3000`
   "customerPhone": "9876543210",
   "address": "221B Baker Street",
   "apartment": "Apt 2",
-  "total": 298,
   "items": [
     {
       "menuItemId": "YOUR_MENU_ITEM_OBJECT_ID",
-      "name": "Paneer Butter Masala",
-      "price": 249,
       "quantity": 1
     }
   ]
@@ -118,6 +115,7 @@ Base URL: `http://localhost:3000`
 ```
 
 - `customerPhone` must be exactly **10 digits**
+- Server looks up menu items, snapshots `name`/`price`, and computes `total` (client prices are not trusted)
 - `status` defaults to `RECEIVED` on create
 
 #### Update status body

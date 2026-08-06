@@ -9,18 +9,13 @@ const validOrder = {
   customerPhone: "9876543210",
   address: "221B Baker Street",
   apartment: "Apt 2",
-  total: 348,
   items: [
     {
       menuItemId: "507f1f77bcf86cd799439011",
-      name: "Paneer Butter Masala",
-      price: 249,
       quantity: 1,
     },
     {
       menuItemId: "507f1f77bcf86cd799439012",
-      name: "Masala Chai",
-      price: 49,
       quantity: 2,
     },
   ],

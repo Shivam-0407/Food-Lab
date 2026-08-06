@@ -7,6 +7,7 @@ const {
   mockUpdate,
   mockDelete,
   mockGetOrderById,
+  mockMenuFindMany,
 } = vi.hoisted(() => ({
   mockCreate: vi.fn(),
   mockFindMany: vi.fn(),
@@ -14,6 +15,7 @@ const {
   mockUpdate: vi.fn(),
   mockDelete: vi.fn(),
   mockGetOrderById: vi.fn(),
+  mockMenuFindMany: vi.fn(),
 }));
 
 vi.mock("@/lib/prisma", () => ({
@@ -24,6 +26,9 @@ vi.mock("@/lib/prisma", () => ({
       findUnique: mockFindUnique,
       update: mockUpdate,
       delete: mockDelete,
+    },
+    menuItem: {
+      findMany: mockMenuFindMany,
     },
   },
 }));
@@ -46,27 +51,39 @@ const validBody = {
   customerName: "Shiva",
   customerPhone: "9876543210",
   address: "221B Baker Street",
-  total: 249,
   items: [
     {
       menuItemId: MENU_ITEM_ID,
-      name: "Paneer Butter Masala",
-      price: 249,
       quantity: 1,
     },
   ],
 };
 
+const mockMenuItem = {
+  id: MENU_ITEM_ID,
+  name: "Paneer Butter Masala",
+  description: "Rich gravy",
+  price: 249,
+  image: "/paneer.jpg",
+  category: "Curries",
+};
+
 const mockOrder = {
   id: ORDER_ID,
-  ...validBody,
+  customerName: validBody.customerName,
+  customerPhone: validBody.customerPhone,
+  address: validBody.address,
+  total: 249,
   status: "RECEIVED",
   apartment: null,
   items: [
     {
       id: "507f1f77bcf86cd799439088",
       orderId: ORDER_ID,
-      ...validBody.items[0],
+      menuItemId: MENU_ITEM_ID,
+      name: "Paneer Butter Masala",
+      price: 249,
+      quantity: 1,
     },
   ],
   createdAt: new Date(),
@@ -87,7 +104,8 @@ describe("Orders API", () => {
   });
 
   describe("POST /api/orders (Create)", () => {
-    it("creates an order and returns 201", async () => {
+    it("creates an order with DB prices and returns 201", async () => {
+      mockMenuFindMany.mockResolvedValue([mockMenuItem]);
       mockCreate.mockResolvedValue(mockOrder);
 
       const res = await createOrder(
@@ -97,7 +115,24 @@ describe("Orders API", () => {
 
       expect(res.status).toBe(201);
       expect(data.id).toBe(ORDER_ID);
-      expect(mockCreate).toHaveBeenCalledOnce();
+      expect(mockMenuFindMany).toHaveBeenCalledOnce();
+      expect(mockCreate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            total: 249,
+            items: {
+              create: [
+                expect.objectContaining({
+                  menuItemId: MENU_ITEM_ID,
+                  name: "Paneer Butter Masala",
+                  price: 249,
+                  quantity: 1,
+                }),
+              ],
+            },
+          }),
+        }),
+      );
     });
 
     it("returns 400 for invalid input", async () => {
@@ -106,6 +141,17 @@ describe("Orders API", () => {
           ...validBody,
           customerPhone: "123",
         }),
+      );
+
+      expect(res.status).toBe(400);
+      expect(mockCreate).not.toHaveBeenCalled();
+    });
+
+    it("returns 400 when a menu item is missing", async () => {
+      mockMenuFindMany.mockResolvedValue([]);
+
+      const res = await createOrder(
+        jsonRequest("http://localhost/api/orders", "POST", validBody),
       );
 
       expect(res.status).toBe(400);

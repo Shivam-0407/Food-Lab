@@ -17,7 +17,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { formatINR } from "@/lib/utils";
-import { createOrderSchema, type CreateOrderInput } from "@/lib/orders.input";
+import {
+  checkoutFormSchema,
+  type CheckoutFormValues,
+} from "@/lib/orders.input";
 import { useCartStore } from "@/store/cart";
 
 export default function CheckoutPage() {
@@ -28,30 +31,27 @@ export default function CheckoutPage() {
 
   const [error, setError] = useState<string | null>(null);
 
-  const form = useForm<CreateOrderInput>({
-    resolver: zodResolver(createOrderSchema),
+  const form = useForm<CheckoutFormValues>({
+    resolver: zodResolver(checkoutFormSchema),
     defaultValues: {
       customerName: "",
       customerPhone: "",
       address: "",
       apartment: "",
-      total: subtotal,
-      items: items.map((i) => ({
-        menuItemId: i.menuItemId,
-        name: i.name,
-        price: i.price,
-        quantity: i.quantity,
-      })),
     },
   });
 
-  async function onSubmit(values: CreateOrderInput) {
+  async function onSubmit(values: CheckoutFormValues) {
     setError(null);
 
     try {
       const { data: order } = await axios.post("/api/orders", {
         ...values,
         apartment: values.apartment || undefined,
+        items: items.map((i) => ({
+          menuItemId: i.menuItemId,
+          quantity: i.quantity,
+        })),
       });
 
       clearCart();

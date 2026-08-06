@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+/** Client payload — prices/totals come from DB on the server */
 export const createOrderSchema = z.object({
   customerName: z.string().min(2, "Name is required"),
   customerPhone: z
@@ -7,13 +8,10 @@ export const createOrderSchema = z.object({
     .regex(/^\d{10}$/, "Enter a valid 10-digit phone number"),
   address: z.string().min(5, "Address is required"),
   apartment: z.string().optional(),
-  total: z.number().nonnegative(),
   items: z
     .array(
       z.object({
         menuItemId: z.string().min(1),
-        name: z.string().min(1),
-        price: z.number().positive(),
         quantity: z.number().int().positive(),
       }),
     )
@@ -21,6 +19,11 @@ export const createOrderSchema = z.object({
 });
 
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
+
+/** Delivery fields for the checkout form UI */
+export const checkoutFormSchema = createOrderSchema.omit({ items: true });
+
+export type CheckoutFormValues = z.infer<typeof checkoutFormSchema>;
 
 export const orderStatusSchema = z.enum([
   "RECEIVED",
